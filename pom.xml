@@ -30,10 +30,6 @@
                 <version>11.0.24</version>
                 <configuration>
                     <stopPort>8080</stopPort>
-                    <useTestClasspath>false</useTestClasspath>
-                    <webAppConfig>
-                        <contextPath>/</contextPath>
-                    </webAppConfig>
                 </configuration>
             </plugin>
             <plugin>
