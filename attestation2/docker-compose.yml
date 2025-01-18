@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres_17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: registration_db
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-d", "registration_db"]
+      interval: 10s  # Проверка каждые 10 секунд
+      retries: 5     # Попробовать 5 раз
+      timeout: 5s    # Таймаут 5 секунд на выполнение проверки
+      start_period: 30s  # Время ожидания после старта контейнера перед первой проверкой
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    depends_on:
+      postgres:
+        condition: service_healthy  # Приложение будет запускаться только после успешной проверки состояния PostgreSQL
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/registration_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

@@ -1,0 +1,7 @@
+# IntelliJ project files
+.gigaide
+.idea
+*.iml
+out
+gen
+
