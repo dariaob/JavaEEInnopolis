@@ -27,6 +27,8 @@ public class Main {
             intList.sort(Comparator.reverseOrder());
             writeDataToFile(intList, data);
 
+            Integer[] neoArray = intList.toArray(new Integer[0]);
+            writeDataToFile(intList, data);
 
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
