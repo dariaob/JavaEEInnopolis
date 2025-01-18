@@ -1,0 +1,9 @@
+services:
+  hm7:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hm7
+    ports:
+      - "8080:8080"
+    command: ["java", "-jar", "hm7.jar"]
