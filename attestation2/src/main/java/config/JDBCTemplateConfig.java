@@ -5,7 +5,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 public class JDBCTemplateConfig {
-    private static final String URL = "jdbc:postgresql://localhost:5432/registration_db";
+    private static final String URL = "jdbc:postgresql://postgres:5432/registration_db";
     private static final String USER_NAME = "postgres";
     private static final String password = "postgres";
     private static final String driverName = "org.postgresql.Driver";

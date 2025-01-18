@@ -3,7 +3,6 @@ package repository.impl;
 import config.JDBCTemplateConfig;
 import entity.OfficeEntity;
 import exceptions.ObjectNotFountException;
-import exceptions.RecordExistsException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -57,7 +56,7 @@ public class OfficeRepositoryImpl implements OfficeRepository {
      * @return
      */
     @Override
-    public int create(String officeType) throws RecordExistsException, ObjectNotFountException {
+    public int create(String officeType) {
         return jdbcTemplate.update(CREATE, officeType);
     }
 
@@ -95,7 +94,7 @@ public class OfficeRepositoryImpl implements OfficeRepository {
      * @param officeType название кабинета
      */
     @Override
-    public void update(String officeType, Long id) throws IllegalArgumentException, RecordExistsException, ObjectNotFountException {
+    public void update(String officeType, Long id) throws IllegalArgumentException,  ObjectNotFountException {
         // Проверка id
         if (id < 0) {
             throw new IllegalArgumentException("ID не должно быть отрицательным числом");

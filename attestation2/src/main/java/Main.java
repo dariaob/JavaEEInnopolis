@@ -1,14 +1,7 @@
 import exceptions.ImpossibleToDeleteException;
 import exceptions.ObjectNotFountException;
-import exceptions.RecordExistsException;
-import repository.DoctorRepository;
-import repository.OfficeRepository;
-import repository.PatientCardRepository;
-import repository.PatientRepository;
-import repository.impl.DoctorRepositoryImpl;
-import repository.impl.OfficeRepositoryImpl;
-import repository.impl.PatientCardRepositoryImpl;
-import repository.impl.PatientRepositoryImpl;
+import repository.*;
+import repository.impl.*;
 
 import java.time.LocalDateTime;
 
@@ -17,7 +10,8 @@ public class Main {
     public static final PatientCardRepository patientCards = new PatientCardRepositoryImpl();
     public static final DoctorRepository doctors = new DoctorRepositoryImpl();
     public static final PatientRepository patientRepository = new PatientRepositoryImpl();
-    public static void main(String[] args) throws ObjectNotFountException, RecordExistsException, ImpossibleToDeleteException {
+    public static final ReceptionRepository reception = new ReceptionRepositoryImpl();
+    public static void main(String[] args) throws ObjectNotFountException, ImpossibleToDeleteException {
         // Кабинеты
         System.out.println(officeRepository.create("Приемная"));
         officeRepository.update("Йогурт", 1L);
@@ -49,12 +43,21 @@ public class Main {
         System.out.println(doctors.findAll());
 
         // Пациент
-        System.out.println(patientRepository.create(123456789L, "Косяков Федор Михайлович", "Монастырская 23", 2L));
+        System.out.println(patientRepository.create(123456789L, "Косяков Федор Михайлович", "Монастырская 23", 4L));
         System.out.println(patientRepository.create(987654321L, "Васильков Федор Михайлович", "Монастырская 123", 3L));
         patientRepository.update(1234789L, "Косяков Федор Михайлович", "Монастырская 12", 2L, 2L);
         System.out.println(patientRepository.findById(2L));
-        System.out.println(patientRepository.deleteById(1L));
+        System.out.println(patientRepository.deleteById(1L, 1L));
         System.out.println(patientRepository.findByDInsuranceId(987654321L));
         System.out.println(patientRepository.findAll());
+
+        // Прием
+        System.out.println(reception.create(3L, 2L, workHoursFrom, workHoursFor, 2L, 2L, 987654321L));
+        System.out.println(reception.create(5L, 3L, workHoursFrom2, workHoursFor2, 3L, 2L, 123456789L));
+        reception.update(5L, 3L, workHoursFrom2, workHoursFor, 3L, 2L, 123456789L, 2L);
+        System.out.println(reception.findById(2L));
+        System.out.println(reception.deleteById(1L, 1L, 1L, 1L, 1L));
+        System.out.println(reception.findByDoctorId(5L));
+        System.out.println(reception.findAll());
     }
 }

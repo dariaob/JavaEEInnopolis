@@ -1,11 +1,9 @@
 package repository.impl;
 
 import config.JDBCTemplateConfig;
-import entity.OfficeEntity;
 import entity.PatientCardEntity;
 import exceptions.ImpossibleToDeleteException;
 import exceptions.ObjectNotFountException;
-import exceptions.RecordExistsException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -95,7 +93,7 @@ public class PatientCardRepositoryImpl implements PatientCardRepository {
      * @param id ID
      */
     @Override
-    public void update(String symptoms, String diagnosis, String medicine, Long id) throws RecordExistsException, ObjectNotFountException {
+    public void update(String symptoms, String diagnosis, String medicine, Long id) {
         // Проверка id
         if (id < 0) {
             throw new IllegalArgumentException("ID не должно быть отрицательным числом");
@@ -112,7 +110,7 @@ public class PatientCardRepositoryImpl implements PatientCardRepository {
             jdbcTemplate.update(UPDATE, symptoms, diagnosis, medicine, id);
             System.out.println("Updated");
         } else {
-            System.out.println("Кабинет не найден. Создан новый кабинет.");
+            System.out.println("Карточка пациента не найдена. Создана новая карточка.");
             // Если карточка с таким id не найдена, создаем новую
             this.create(symptoms, diagnosis, medicine);
     }

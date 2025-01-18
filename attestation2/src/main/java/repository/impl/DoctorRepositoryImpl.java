@@ -2,10 +2,8 @@ package repository.impl;
 
 import config.JDBCTemplateConfig;
 import entity.DoctorEntity;
-import entity.PatientCardEntity;
 import exceptions.ImpossibleToDeleteException;
 import exceptions.ObjectNotFountException;
-import exceptions.RecordExistsException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,13 +18,14 @@ public class DoctorRepositoryImpl implements DoctorRepository {
     // Создаем экземпляр для подключения к БД
     private final JdbcTemplate jdbcTemplate = JDBCTemplateConfig.createJdbcTemplate();
 
+    // Константы с запросами
     private static final String FIND_All = "select * from reg_db.doctor";                              // Находим все данные из таблицы reg_db.doctor
     private static final String CREATE = "INSERT INTO reg_db.doctor (\"name\", \"work_hours_from\", \"work_hours_for\", \"office_id\" ) VALUES (?, ?, ?, ?)";  // Добавляем данные в таблицу
     private static final String FIND_BY_ID = "SELECT \"id\", \"name\", \"work_hours_from\", \"work_hours_for\", \"office_id\" FROM reg_db.doctor WHERE \"id\" = ?";              // Находим запись по id
     private static final String UPDATE = "UPDATE reg_db.doctor SET \"name\", \"work_hours_from\", \"work_hours_for\", \"office_id\" = ? WHERE \"id\" = ?";      // Меняет уже существующие данные
-    private static final String CHECK_RECEPTION_BY_DOCTOR_ID = "SELECT COUNT(*) FROM reg_db.reception WHERE doctor_id = ?";
     private static final String DELETE_BY_ID = "DELETE FROM reg_db.doctor WHERE id = ?";
     private static final String GET_ALL_DOCTOR_IDS = "SELECT id FROM reg_db.doctor";
+    private static final String CHECK_RECEPTION_BY_DOCTOR_ID = "SELECT COUNT(*) FROM reg_db.reception WHERE doctor_id = ?";
     private static final String DELETE_RECEPTION_BY_DOCTOR_ID = "DELETE FROM reg_db.reception WHERE doctor_id = ?";
     private static final String FIND_BY_OFFICE = "SELECT \"id\",\"name\", \"work_hours_from\", \"work_hours_for\", \"office_id\" FROM reg_db.doctor WHERE \"office_id\" = ?";
 
@@ -46,20 +45,23 @@ public class DoctorRepositoryImpl implements DoctorRepository {
     }
 
     /**
-     *
-     * @param name
-     * @param workHoursFrom
-     * @param workHoursFor
-     * @param officeId
-     * @return
-     * @throws RecordExistsException
-     * @throws ObjectNotFountException
+     * Создает новую запись в таблице
+     * @param name ФИО доктора
+     * @param workHoursFrom Время начало работы
+     * @param workHoursFor  Время окончания работы
+     * @param officeId ид офиса
+     * @return кол-во записанных строк
      */
     @Override
-    public int create(String name, LocalDateTime workHoursFrom, LocalDateTime workHoursFor, Long officeId) throws RecordExistsException, ObjectNotFountException {
+    public int create(String name, LocalDateTime workHoursFrom, LocalDateTime workHoursFor, Long officeId) {
         return jdbcTemplate.update(CREATE, name, workHoursFrom, workHoursFor, officeId);
     }
 
+    /**
+     * Находит запись по ид
+     * @param id ид врача
+     * @return запись
+     */
     @Override
     public DoctorEntity findById(Long id) throws ObjectNotFountException {
         // Проверка id
@@ -78,8 +80,17 @@ public class DoctorRepositoryImpl implements DoctorRepository {
         }
     }
 
+
+    /**
+     * @param name имя
+     * @param workHoursFrom Время работы начало
+     * @param workHoursFor Время работы окончание
+     * @param officeId ид офиса
+     * @param id
+     * @throws ObjectNotFountException
+     */
     @Override
-    public void update(String name, LocalDateTime workHoursFrom, LocalDateTime workHoursFor, Long officeId, Long id) throws RecordExistsException, ObjectNotFountException {
+    public void update(String name, LocalDateTime workHoursFrom, LocalDateTime workHoursFor, Long officeId, Long id) throws ObjectNotFountException {
         // Проверка id
         if (id < 0) {
             throw new IllegalArgumentException("ID не должно быть отрицательным числом");
@@ -96,7 +107,7 @@ public class DoctorRepositoryImpl implements DoctorRepository {
             jdbcTemplate.update(UPDATE, name, workHoursFrom, workHoursFor, officeId, id);
             System.out.println("Updated");
         } else {
-            System.out.println("Кабинет не найден. Создан новый кабинет.");
+            System.out.println("Врач не найден. Создан новый врач.");
             // Если карточка с таким id не найдена, создаем новую
             this.create(name, workHoursFrom, workHoursFor, officeId);
     }

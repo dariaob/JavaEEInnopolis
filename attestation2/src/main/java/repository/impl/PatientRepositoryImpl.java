@@ -1,12 +1,9 @@
 package repository.impl;
 
 import config.JDBCTemplateConfig;
-import entity.DoctorEntity;
-import entity.PatientCardEntity;
 import entity.PatientEntity;
 import exceptions.ImpossibleToDeleteException;
 import exceptions.ObjectNotFountException;
-import exceptions.RecordExistsException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -34,8 +31,8 @@ public class PatientRepositoryImpl implements PatientRepository {
     private static final String DELETE_RECEPTION_BY_PATIENT_ID =  "DELETE FROM reg_db.reception WHERE patient_id = ?";
     private static final String DELETE_PATIENT_CARD = "SELECT COUNT(*) FROM reg_db.patient_card WHERE card_id = ?;";
     private static final String DELETE_ALL = "DELETE FROM reg_db.patient";
-    private static final String CHECK_LINKED_RECORDS = "SELECT COUNT(*) FROM reg_db.reception WHERE patient_id = ? UNION ALL " +
-                                                                        "SELECT COUNT(*) FROM reg_db.patient_card WHERE card_id = ?"; // Проверка связанных записей
+    private static final String CHECK_RECEPTION_RECORDS = "SELECT COUNT(*) FROM reg_db.reception WHERE patient_id = ?";
+    private static final String CHECK_PATIENT_CARD_RECORDS ="SELECT COUNT(*) FROM reg_db.patient_card WHERE id = ?"; // Проверка связанных записей
 
     /**
      * Создание маппера для пациента
@@ -67,7 +64,7 @@ public class PatientRepositoryImpl implements PatientRepository {
      * @return кол-во созданных строк
      */
     @Override
-    public int create(Long insuranceId, String name, String address, Long cardId) throws ObjectNotFountException {
+    public int create(Long insuranceId, String name, String address, Long cardId) {
         return jdbcTemplate.update(CREATE, insuranceId, name, address, cardId);
     }
 
@@ -102,7 +99,7 @@ public class PatientRepositoryImpl implements PatientRepository {
      * @param patientId id пациента
      */
     @Override
-    public void update(Long insuranceId, String name, String address, Long cardId, Long patientId) throws ObjectNotFountException, RecordExistsException {
+    public void update(Long insuranceId, String name, String address, Long cardId, Long patientId) throws ObjectNotFountException {
         // Проверка id
         if (patientId < 0) {
             throw new IllegalArgumentException("ID не должно быть отрицательным числом");
@@ -114,7 +111,7 @@ public class PatientRepositoryImpl implements PatientRepository {
             jdbcTemplate.update(UPDATE, insuranceId, name, address, cardId, patientId);
             System.out.println("Updated");
         } else {
-            System.out.println("Кабинет не найден. Создан новый кабинет.");
+            System.out.println("Пациент не найден. Создан новый пациент.");
             // Если карточка с таким id не найдена, создаем новую
             this.create(insuranceId, name, address, cardId);
         }
@@ -126,13 +123,18 @@ public class PatientRepositoryImpl implements PatientRepository {
      * @return кол-во удаленных записей
      */
     @Override
-    public int deleteById(Long patientId) throws ObjectNotFountException, ImpossibleToDeleteException {
+    public int deleteById(Long patientId, Long cardId) throws ObjectNotFountException, ImpossibleToDeleteException {
         // Проверка наличия связанных записей в таблицах reception и patient_card
-        Integer count = jdbcTemplate.queryForObject(CHECK_LINKED_RECORDS, Integer.class, patientId, patientId);
+        Integer receptionCount = jdbcTemplate.queryForObject(CHECK_RECEPTION_RECORDS, Integer.class, patientId);
+        Integer cardCount = jdbcTemplate.queryForObject(CHECK_PATIENT_CARD_RECORDS, Integer.class, cardId);
 
-        if (count != null && count > 0) {
+        if (receptionCount != null && receptionCount > 0) {
             // Если есть связанные записи, выбрасываем исключение
             throw new ImpossibleToDeleteException("Невозможно удалить пациента с id " + patientId + ". Есть связанные записи в других таблицах.");
+        }
+
+        if (cardCount != null && cardCount > 0) {
+            throw new ImpossibleToDeleteException("Невозможно удалить пациента с card_id " + cardId + ". Есть связанные записи в других таблицах.");
         }
 
         try {

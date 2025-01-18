@@ -3,7 +3,6 @@ package repository;
 import entity.PatientCardEntity;
 import exceptions.ImpossibleToDeleteException;
 import exceptions.ObjectNotFountException;
-import exceptions.RecordExistsException;
 
 import java.util.List;
 
@@ -14,11 +13,11 @@ public interface PatientCardRepository {
     // Выводит все данные таблицы
     List<PatientCardEntity> findAll();
     // Создает новую запись
-    int create(String symptoms, String diagnosis, String medicine) throws RecordExistsException, ObjectNotFountException;
+    int create(String symptoms, String diagnosis, String medicine);
     // Находит по id
     PatientCardEntity findById(Long id) throws ObjectNotFountException;
     // Обновляет запись
-    void update(String symptoms, String diagnosis, String medicine, Long id) throws RecordExistsException, ObjectNotFountException;
+    void update(String symptoms, String diagnosis, String medicine, Long id) throws  ObjectNotFountException;
     // Удаляет по id
     int deleteById(Long id) throws ObjectNotFountException, ImpossibleToDeleteException;
     // Удаляет все записи таблицы
