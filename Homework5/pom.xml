@@ -13,5 +13,39 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+    </dependencies>
 
+    <build>
+    <plugins>
+    <plugin>
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-maven-plugin -->
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>3.4.1</version>
+        <configuration>
+            <mainClass>Main</mainClass>
+            <layout>JAR</layout>
+        </configuration>
+    </plugin>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+            <archive>
+                <manifestEntries>
+                    <Main-Class>Main</Main-Class>
+                </manifestEntries>
+            </archive>
+        </configuration>
+    </plugin>
+    </plugins>
+    </build>
 </project>

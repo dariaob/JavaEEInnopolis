@@ -1,0 +1,14 @@
+services:
+  hm5:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hm5
+    volumes:
+      - ./input.txt:/app/input.txt
+      - ./inputSet.txt:/app/inputSet.txt
+      - ./output.txt:/app/output.txt
+      - ./outputSet.txt:/app/outputSet.txt
+    ports:
+      - "8080:8080"
+    command: ["java", "-jar", "hm5.jar"]

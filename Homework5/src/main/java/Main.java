@@ -9,7 +9,7 @@ public class Main {
         List<Integer> intList = new ArrayList<>();
 
         try (BufferedReader reader =
-                     new BufferedReader(new FileReader("Homework5/src/main/resources/input.txt"))) {
+                     new BufferedReader(new FileReader("./app/input.txt"))) {
             String line = reader.readLine();
             String[] data = line.replaceAll("\\[", "")
                     .replaceAll("]", "")
@@ -64,7 +64,7 @@ public class Main {
 
         // HashSet
         try (BufferedReader readers =
-                     new BufferedReader(new FileReader("Homework5/src/main/resources/inputSet.txt"))) {
+                     new BufferedReader(new FileReader("./app/inputSet.txt"))) {
             String readLine = readers.readLine();
             // Создаем сет
             List<String> words = List.of(readLine.split(","));
@@ -103,7 +103,7 @@ public class Main {
     }
 
     public static void writeDataToFile(List<Integer> numbers, String[] strings) {
-        try(FileWriter fileWriter = new FileWriter("Homework5/src/main/resources/output.txt", true)) {
+        try(FileWriter fileWriter = new FileWriter("./app/output.txt", true)) {
             fileWriter.write(Arrays.toString(strings));
             fileWriter.write("\n");
             fileWriter.write(numbers.toString() + System.lineSeparator());
@@ -114,7 +114,7 @@ public class Main {
     }
 
     public static void writeDataToFile(List<Integer> numbers) {
-        try(FileWriter fileWriter = new FileWriter("Homework5/src/main/resources/output.txt", true)) {
+        try(FileWriter fileWriter = new FileWriter("./app/output.txt", true)) {
             fileWriter.write("\n");
             fileWriter.write(numbers.toString() + System.lineSeparator());
             fileWriter.flush();
@@ -124,7 +124,7 @@ public class Main {
     }
 
     public static void writeDataToFile(Integer[] neoArray) {
-        try(FileWriter fileWriter = new FileWriter("Homework5/src/main/resources/output.txt", true)) {
+        try(FileWriter fileWriter = new FileWriter("./app/output.txt", true)) {
             fileWriter.write("\n");
             fileWriter.write(Arrays.toString(neoArray) + System.lineSeparator());
             fileWriter.flush();
@@ -134,7 +134,7 @@ public class Main {
     }
 
     public static void writeSetToFile(Set<String> set) {
-        try(FileWriter fileWriter = new FileWriter("Homework5/src/main/resources/outputSet.txt", true)) {
+        try(FileWriter fileWriter = new FileWriter("./app/outputSet.txt", true)) {
             fileWriter.write(set.toString() + System.lineSeparator());
             fileWriter.flush();
         } catch (IOException e) {
