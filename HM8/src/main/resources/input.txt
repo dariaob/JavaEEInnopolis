@@ -1,0 +1,10 @@
+name: John Doe
+age: 29
+city: New York
+email: john.doe@example.com
+phone: +1-555-1234
+country: USA
+occupation: Software Developer
+company: Tech Innovations Inc.
+hobby: Photography
+isActive: true
