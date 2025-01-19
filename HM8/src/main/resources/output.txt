@@ -1,0 +1,21 @@
+
+[country, occupation, city, isActive, string3, phone, string4, string1, string2, name, animal, company, age, email, hobby]
+
+[USA, Software Developer, New York, true, string3, +1-555-1234, string4, office, string2, John Doe, dog, Tech Innovations Inc., 29, john.doe@example.com, Photography]
+
+[country, occupation, city, isActive, string3, phone, string4, string1, string2, name, animal, company, age, email, hobby]
+
+country->USA
+occupation->Software Developer
+city->New York
+isActive->true
+phone->+1-555-1234
+string4->string4
+string1->office
+string2->string2
+name->John Doe
+animal->dog
+company->Tech Innovations Inc.
+age->29
+email->john.doe@example.com
+hobby->Photography
