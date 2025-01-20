@@ -1,0 +1,20 @@
+
+circle2->Circle: a=10, b=20, x=0, y=0
+square1->Square: a=5, b=5, x=4, y=5
+circle1->Circle: a=6, b=12, x=0, y=0
+square2->Square: a=8, b=8, x=4, y=5
+
+circle2->Circle: a=10, b=20, x=3, y=2
+square1->Square: a=5, b=5, x=4, y=5
+circle1->Circle: a=6, b=12, x=3, y=2
+square2->Square: a=8, b=8, x=4, y=5
+
+circle2->Circle: a=10, b=20, x=3, y=2
+square1->Square: a=5, b=5, x=4, y=5
+circle1->Circle: a=6, b=12, x=3, y=2
+square2->Square: a=8, b=8, x=4, y=5
+
+Circle: a=10, b=20, x=3, y=2
+Square: a=5, b=5, x=4, y=5
+Circle: a=6, b=12, x=3, y=2
+Square: a=8, b=8, x=4, y=5
