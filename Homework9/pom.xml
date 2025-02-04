@@ -68,7 +68,7 @@
     <build>
         <resources>
             <resource>
-                <directory>org.dariaob/main/resources</directory>
+                <directory>/main/resources</directory>
                 <includes>
                     <include>*.*</include>
                     <include>db/migration/*</include>
