@@ -1,0 +1,150 @@
+package org.dariaob.service_tests;
+
+import org.dariaob.exceptions.DataNotFoundException;
+import org.dariaob.models.Specializations;
+import org.dariaob.repositories.SpecializationsRepository;
+import org.dariaob.services.SpecializationsService;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class SpecializationsServiceTest {
+
+    @Mock
+    private SpecializationsRepository specializationsRepository;
+
+    @InjectMocks
+    private SpecializationsService specializationsService;
+
+    @Test
+    @DisplayName("Specializations - Service - Get all active")
+    void getAllActiveTest() {
+        Specializations spec = new Specializations();
+        when(specializationsRepository.findAllActive()).thenReturn(List.of(spec));
+
+        List<Specializations> result = specializationsService.getAllActive();
+
+        assertThat(result).containsExactly(spec);
+        verify(specializationsRepository).findAllActive();
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Get active by ID (exists)")
+    void getActiveByIdWhenExistsTest() {
+        Specializations spec = new Specializations();
+        when(specializationsRepository.findActiveById(1L)).thenReturn(Optional.of(spec));
+
+        Specializations result = specializationsService.getActiveById(1L);
+
+        assertThat(result).isEqualTo(spec);
+        verify(specializationsRepository).findActiveById(1L);
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Get active by ID (not found)")
+    void getActiveByIdWhenNotFoundTest() {
+        when(specializationsRepository.findActiveById(1L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> specializationsService.getActiveById(1L))
+                .isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("не найдена");
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Get by name ignore case (exists)")
+    void getByNameIgnoreCaseWhenExistsTest() {
+        Specializations spec = new Specializations();
+        when(specializationsRepository.findFirstByNameIgnoreCaseAndIsDeletedFalseOrderByIdDesc("терапевт"))
+                .thenReturn(Optional.of(spec));
+
+        Specializations result = specializationsService.getByNameIgnoreCase("терапевт");
+
+        assertThat(result).isEqualTo(spec);
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Get by name ignore case (not found)")
+    void getByNameIgnoreCaseWhenNotFoundTest() {
+        when(specializationsRepository.findFirstByNameIgnoreCaseAndIsDeletedFalseOrderByIdDesc("хирург"))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> specializationsService.getByNameIgnoreCase("хирург"))
+                .isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("не найдена");
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Soft delete (exists)")
+    void softDeleteWhenExistsTest() {
+        when(specializationsRepository.findActiveById(2L)).thenReturn(Optional.of(new Specializations()));
+
+        specializationsService.softDelete(2L);
+
+        verify(specializationsRepository).softDelete(2L);
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Soft delete (not found)")
+    void softDeleteWhenNotFoundTest() {
+        when(specializationsRepository.findActiveById(2L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> specializationsService.softDelete(2L))
+                .isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("не найдена");
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Restore (exists)")
+    void restoreWhenExistsTest() {
+        when(specializationsRepository.findActiveById(3L)).thenReturn(Optional.of(new Specializations()));
+
+        specializationsService.restore(3L);
+
+        verify(specializationsRepository).restore(3L);
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Restore (not found)")
+    void restoreWhenNotFoundTest() {
+        when(specializationsRepository.findActiveById(3L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> specializationsService.restore(3L))
+                .isInstanceOf(DataNotFoundException.class)
+                .hasMessageContaining("не найдена");
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Save specialization")
+    void saveTest() {
+        Specializations spec = new Specializations();
+        when(specializationsRepository.save(spec)).thenReturn(spec);
+
+        Specializations saved = specializationsService.save(spec);
+
+        assertThat(saved).isEqualTo(spec);
+        verify(specializationsRepository).save(spec);
+    }
+
+    @Test
+    @DisplayName("Specializations - Service - Search by name part")
+    void searchByNameTest() {
+        Specializations spec = new Specializations();
+        when(specializationsRepository.searchByName("лог")).thenReturn(List.of(spec));
+
+        List<Specializations> result = specializationsService.searchByName("лог");
+
+        assertThat(result).containsExactly(spec);
+        verify(specializationsRepository).searchByName("лог");
+    }
+}
