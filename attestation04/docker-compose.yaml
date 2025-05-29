@@ -1,0 +1,43 @@
+version: '3.8'  # Рекомендую явно указать версию
+
+services:
+  postgres:
+    image: postgres:17  # Лучше фиксировать версию вместо latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:  # Добавляем healthcheck для проверки готовности БД
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  attestation04:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: attestation04
+    depends_on:
+      postgres:
+        condition: service_healthy  # Ждем пока БД станет доступной
+    ports:
+      - "9999:9999"
+    environment:  # Добавляем переменные для ожидания БД
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    command: >
+      bash -c "
+      echo 'Waiting for PostgreSQL...';
+      while ! nc -z postgres 5432; do sleep 2; done;
+      echo 'PostgreSQL started';
+      java -jar app.jar
+      "
+
+volumes:
+  postgres_data:
