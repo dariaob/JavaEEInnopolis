@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  attestation04:
+    build: .
+    container_name: attestation04
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "9999:9999"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: clinic_db
+    command: ["java", "-jar", "app.jar"]
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: attestation_net
+    driver: bridge
