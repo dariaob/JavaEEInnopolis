@@ -1,43 +1,43 @@
-version: '3.8'  # Рекомендую явно указать версию
+version: '3.8'
 
 services:
   postgres:
-    image: postgres:17  # Лучше фиксировать версию вместо latest
+    image: postgres:17
     container_name: postgres
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:  # Добавляем healthcheck для проверки готовности БД
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   attestation04:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
     container_name: attestation04
     depends_on:
       postgres:
-        condition: service_healthy  # Ждем пока БД станет доступной
+        condition: service_healthy
     ports:
       - "9999:9999"
-    environment:  # Добавляем переменные для ожидания БД
+    environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-    command: >
-      bash -c "
-      echo 'Waiting for PostgreSQL...';
-      while ! nc -z postgres 5432; do sleep 2; done;
-      echo 'PostgreSQL started';
-      java -jar app.jar
-      "
+      SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: clinic_db
+    command: ["java", "-jar", "app.jar"]
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: attestation_net
+    driver: bridge
