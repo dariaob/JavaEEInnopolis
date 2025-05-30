@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.Array;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,12 +33,19 @@ public class Users {
     /**
      * Роли
      */
-    @Array(length = 50)
-    @Column(name = "roles", columnDefinition = "text[]")
-    private List<String> roles;
+    @Column(name = "roles", nullable = false)
+    private String roles;
 
     /**
      * Флаг для Soft Delete
      */
     private boolean isDeleted = false;
+
+    public List<String> getRoles() {
+        return Arrays.asList(roles.split(","));
+    }
+
+    public void setRoleLs(List<String> roleList) {
+        this.roles = String.join(",", roleList);
+    }
 }

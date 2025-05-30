@@ -77,9 +77,14 @@ public class DoctorsController {
         if (dto.getSpecializationIds() != null) {
             dto.getSpecializationIds().forEach(specId -> {
                 Specializations spec = specializationsService.getActiveById(specId);
+
+                DoctorSpecializationId id = new DoctorSpecializationId(savedDoctor.getId(), spec.getId());
+
                 DoctorSpecializations ds = new DoctorSpecializations();
+                ds.setId(id); // ← ОБЯЗАТЕЛЬНО!
                 ds.setDoctor(savedDoctor);
                 ds.setSpecialization(spec);
+
                 doctorSpecializationsService.save(ds);
             });
         }
