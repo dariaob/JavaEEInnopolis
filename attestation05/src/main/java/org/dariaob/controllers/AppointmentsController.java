@@ -3,6 +3,7 @@ package org.dariaob.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.dariaob.dto.appointments.AppointmentRequestDto;
 import org.dariaob.dto.appointments.AppointmentResponseDto;
 import org.dariaob.services.AppointmentsService;
 import org.springframework.http.HttpStatus;
@@ -118,5 +119,18 @@ public class AppointmentsController {
         return appointmentsService.getActiveAppointmentsByPatient(patientId).stream()
                 .map(AppointmentResponseDto::new)
                 .collect(Collectors.toList());
+    }
+
+    @Operation(
+            summary = "Создать новый приём",
+            description = "Создаёт новый приём с проверкой на пересечения времени и расписания врача.",
+            tags = {"Приёмы"}
+    )
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public AppointmentResponseDto createAppointment(@RequestBody AppointmentRequestDto requestDto) {
+        return new AppointmentResponseDto(
+                appointmentsService.createAppointment(requestDto.toEntity())
+        );
     }
 }

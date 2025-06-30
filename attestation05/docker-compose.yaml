@@ -17,28 +17,53 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - attestation_net
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - attestation_net
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:7.5.0
+    image: wurstmeister/zookeeper
     container_name: zookeeper
+    ports:
+      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - attestation_net
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0
+    image: wurstmeister/kafka
     container_name: kafka
-    ports:
-      - "9092:9092"
     depends_on:
       - zookeeper
+    ports:
+      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "kafka-topics", "--bootstrap-server", "kafka:9092", "--list" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - attestation_net
+      
   attestation05:
     build: .
     container_name: attestation05
@@ -55,13 +80,17 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: clinic_db
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
     command: ["java", "-jar", "app.jar"]
+    networks:
+      - attestation_net
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  default:
-    name: attestation_net
+  attestation_net:
     driver: bridge

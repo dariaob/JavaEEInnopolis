@@ -32,6 +32,7 @@ public class KafkaConsumerService {
     @KafkaListener(topics = "appointments", groupId = "appointments-consumer-group")
     @Transactional
     public void handleAppointmentEvent(String message) {
+        log.info("RAW MESSAGE: {}", message);
         try {
             KafkaMessageDto event = objectMapper.readValue(message, KafkaMessageDto.class);
             log.debug("Processing event: {}", event.getEventType());
