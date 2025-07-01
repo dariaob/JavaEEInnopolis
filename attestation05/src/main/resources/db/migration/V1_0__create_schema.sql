@@ -37,6 +37,28 @@ COMMENT ON COLUMN doctors.work_hours_for IS 'Время окончания ра�
 COMMENT ON COLUMN doctors.office_id IS 'Идентификатор офиса';
 COMMENT ON COLUMN doctors.is_deleted IS 'Признак удаления врача';
 
+-- Таблица расписания врачей
+CREATE TABLE IF NOT EXISTS doctor_schedule (
+                                               id SERIAL PRIMARY KEY,
+                                               doctor_id BIGINT NOT NULL,
+                                               day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+                                               start_time TIME NOT NULL,
+                                               end_time TIME NOT NULL,
+                                               office_id BIGINT,
+                                               is_deleted BOOLEAN NOT NULL,
+                                               FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+                                               FOREIGN KEY (office_id) REFERENCES offices(id) ON DELETE SET NULL
+);
+
+COMMENT ON TABLE doctor_schedule IS 'Таблица с данными о расписании врачей';
+COMMENT ON COLUMN doctor_schedule.id IS 'Идентификатор записи в расписании';
+COMMENT ON COLUMN doctor_schedule.doctor_id IS 'Идентификатор врача';
+COMMENT ON COLUMN doctor_schedule.day_of_week IS 'День недели';
+COMMENT ON COLUMN doctor_schedule.start_time IS 'Время начала приема';
+COMMENT ON COLUMN doctor_schedule.end_time IS 'Время окончания приема';
+COMMENT ON COLUMN doctor_schedule.office_id IS 'Идентификатор кабинета';
+COMMENT ON COLUMN doctor_schedule.is_deleted IS 'Признак удаления записи';
+
 -- Таблица карт пациентов
 CREATE TABLE IF NOT EXISTS patient_cards (
     id SERIAL PRIMARY KEY,
@@ -106,28 +128,6 @@ COMMENT ON TABLE users IS 'Таблица с данными о пользова�
 COMMENT ON COLUMN users.username IS 'Имя пользователя';
 COMMENT ON COLUMN users.password IS 'Пароль пользователя';
 COMMENT ON COLUMN users.roles IS 'Роли пользователя';
-
--- Таблица расписания врачей
-CREATE TABLE IF NOT EXISTS doctor_schedule (
-    id SERIAL PRIMARY KEY,
-    doctor_id BIGINT NOT NULL,
-    day_of_week SMALLINT NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
-    start_time TIME NOT NULL,
-    end_time TIME NOT NULL,
-    office_id BIGINT,
-    is_deleted BOOLEAN NOT NULL,
-    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
-    FOREIGN KEY (office_id) REFERENCES offices(id) ON DELETE SET NULL
-);
-
-COMMENT ON TABLE doctor_schedule IS 'Таблица с данными о расписании врачей';
-COMMENT ON COLUMN doctor_schedule.id IS 'Идентификатор записи в расписании';
-COMMENT ON COLUMN doctor_schedule.doctor_id IS 'Идентификатор врача';
-COMMENT ON COLUMN doctor_schedule.day_of_week IS 'День недели';
-COMMENT ON COLUMN doctor_schedule.start_time IS 'Время начала приема';
-COMMENT ON COLUMN doctor_schedule.end_time IS 'Время окончания приема';
-COMMENT ON COLUMN doctor_schedule.office_id IS 'Идентификатор кабинета';
-COMMENT ON COLUMN doctor_schedule.is_deleted IS 'Признак удаления записи';
 
 -- История изменений карт пациентов
 CREATE TABLE IF NOT EXISTS patient_cards_history (
