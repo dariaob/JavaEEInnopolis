@@ -130,7 +130,7 @@ public class AppointmentsController {
     @ResponseStatus(HttpStatus.CREATED)
     public AppointmentResponseDto createAppointment(@RequestBody AppointmentRequestDto requestDto) {
         return new AppointmentResponseDto(
-                appointmentsService.createAppointment(requestDto.toEntity())
+                appointmentsService.createAppointment(requestDto)
         );
     }
 }

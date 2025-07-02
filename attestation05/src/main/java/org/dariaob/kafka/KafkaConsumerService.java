@@ -32,12 +32,15 @@ public class KafkaConsumerService {
     @KafkaListener(topics = "appointments", groupId = "appointments-consumer-group")
     @Transactional
     public void handleAppointmentEvent(String message) {
-        log.info("RAW MESSAGE: {}", message);
+        if (message == null || message.trim().isEmpty()) {
+            log.warn("Received empty Kafka message, skipping");
+            return;
+        }
         try {
             KafkaMessageDto event = objectMapper.readValue(message, KafkaMessageDto.class);
             log.debug("Processing event: {}", event.getEventType());
 
-            switch (event.getEventType()) {
+            switch (event.getEventType().toUpperCase()) {
                 case "APPOINTMENT_DELETED" -> handleAppointmentDeleted(event);
                 case "APPOINTMENT_RESTORED" -> handleAppointmentRestored(event);
                 case "APPOINTMENT_CREATED" -> log.info("Appointment created: {}", event.getEntityId());

@@ -81,9 +81,11 @@ CREATE TABLE IF NOT EXISTS doctor_schedule_slots (
                                                      doctor_schedule_id BIGINT NOT NULL,
                                                      start_time TIMESTAMP NOT NULL,
                                                      end_time TIMESTAMP NOT NULL,
+                                                     appointment_id BIGINT,
                                                      is_booked BOOLEAN NOT NULL DEFAULT FALSE,
                                                      is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
                                                      FOREIGN KEY (doctor_schedule_id) REFERENCES doctor_schedule(id) ON DELETE CASCADE
+                                                     FOREIGN KEY (appointment_id) REFERENCES appointments(id) ON DELETE SET NULL
 );
 
 COMMENT ON TABLE doctor_schedule_slots IS 'Таблица слотов расписания врача';
@@ -91,6 +93,7 @@ COMMENT ON COLUMN doctor_schedule_slots.doctor_schedule_id IS 'Ссылка на
 COMMENT ON COLUMN doctor_schedule_slots.start_time IS 'Время начала слота';
 COMMENT ON COLUMN doctor_schedule_slots.end_time IS 'Время окончания слота';
 COMMENT ON COLUMN doctor_schedule_slots.is_booked IS 'Флаг, что слот занят';
+COMMENT ON COLUMN doctor_schedule_slots.appointment_id IS 'Ссылка на запись о приеме';
 COMMENT ON COLUMN doctor_schedule_slots.is_deleted IS 'Флаг soft delete';
 
 

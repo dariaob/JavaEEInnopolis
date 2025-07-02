@@ -25,9 +25,11 @@ public class UsersDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
+                .map(role -> role.replaceAll("[{}\"]", "")) // -> "ROLE_ADMIN"
                 .map(SimpleGrantedAuthority::new)
                 .toList();
     }
+
 
     /**
      * Получить пароль пользователя.
@@ -88,4 +90,7 @@ public class UsersDetails implements UserDetails {
     public boolean isEnabled() {
         return !user.isDeleted();
     }
+
+
+
 }

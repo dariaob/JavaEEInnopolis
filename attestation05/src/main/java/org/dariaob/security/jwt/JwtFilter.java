@@ -41,6 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         final String authHeader = request.getHeader("Authorization");
+        logger.info("Заголовок Authorization: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
@@ -49,9 +50,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         final String token = authHeader.substring(7);
         final String username;
+
+        logger.info("JWT токен: " + token);
+
         try {
             username = jwtService.extractUsername(token);
+            logger.info("Извлечённый username: " + username);
         } catch (Exception e) {
+            logger.error("Ошибка парсинга токена: ", e);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Невалидный JWT токен");
             return;
         }
@@ -69,6 +75,9 @@ public class JwtFilter extends OncePerRequestFilter {
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                logger.info("Аутентификация успешна для пользователя: " + username);
+            } else {
+                logger.warn("Токен невалиден для пользователя: " + username);
             }
         }
 
