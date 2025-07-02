@@ -5,14 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.dariaob.dto.appointments.AppointmentRequestDto;
 import org.dariaob.exceptions.DataNotFoundException;
 import org.dariaob.exceptions.NoFreeSlotsException;
 import org.dariaob.kafka.KafkaMessageDto;
 import org.dariaob.kafka.KafkaProducerService;
-import org.dariaob.models.Appointments;
-import org.dariaob.models.DoctorSchedule;
-import org.dariaob.models.DoctorScheduleSlot;
-import org.dariaob.models.Doctors;
+import org.dariaob.models.*;
 import org.dariaob.repositories.AppointmentsRepository;
 import org.dariaob.repositories.DoctorScheduleSlotRepository;
 import org.springframework.cache.annotation.CacheEvict;
@@ -40,6 +38,9 @@ public class AppointmentsService {
     private final ObjectMapper objectMapper;
     private final DoctorScheduleSlotRepository slotRepository;
     private final DoctorScheduleSlotGeneratorService slotGenerator;
+    private final DoctorsService doctorsService;
+    private final PatientsService patientsService;
+    private final OfficesService officesService;
 
     private static final String TOPIC = "appointments";
 
@@ -135,14 +136,18 @@ public class AppointmentsService {
      */
     @Transactional
     @CacheEvict(value = "appointments", allEntries = true)
-    public Appointments createAppointment(Appointments appointment) {
-        requireNonNull(appointment.getDoctor(), "Doctor must not be null");
-        requireNonNull(appointment.getDoctor().getId(), "Doctor ID must not be null");
+    public Appointments createAppointment(AppointmentRequestDto dto) {
 
-        LocalDateTime start = appointment.getWorkHoursFrom();
-        LocalDateTime end = appointment.getWorkHoursFor();
-        Doctors doctor = appointment.getDoctor();
+        // 1. Получение сущностей по ID из запроса
+        Doctors doctor = doctorsService.getActiveById(dto.getDoctorId());
+        Patients patient = patientsService.getActiveById(dto.getPatientId());
+        Offices office = officesService.getActiveOfficeById(dto.getOfficeId());
 
+        // 2. Работа со временем
+        LocalDateTime start = dto.getDate();
+        LocalDateTime end = start.plusMinutes(30); // предположим, приём длится 30 минут
+
+        // 3. Проверки
         if (hasTimeConflict(doctor.getId(), start, end)) {
             throw new IllegalArgumentException("Указанное время пересекается с другим приёмом врача.");
         }
@@ -151,25 +156,28 @@ public class AppointmentsService {
             throw new IllegalArgumentException("Указанное время не соответствует расписанию врача.");
         }
 
-        // 1. Генерация слотов (если их нет)
-        LocalDate date = appointment.getWorkHoursFrom().toLocalDate();
-        if (!slotRepository.existsByDoctorIdAndDate(
-                appointment.getDoctor().getId(),
-                date)) {
-            slotGenerator.generateSlotsForDate(appointment.getDoctor().getId(), date);
+        // 4. Генерация слотов при необходимости
+        LocalDate date = start.toLocalDate();
+        if (!slotRepository.existsByDoctorIdAndDate(doctor.getId(), date)) {
+            slotGenerator.generateSlotsForDate(doctor.getId(), date);
         }
 
-        // 2. Находим свободный слот
+        // 5. Поиск свободного слота
         DoctorScheduleSlot slot = slotRepository
-                .findFirstByDoctorIdAndTime(
-                        appointment.getDoctor().getId(),
-                        appointment.getWorkHoursFrom(),
-                        appointment.getWorkHoursFor()
-                )
+                .findFirstByDoctorIdAndTime(doctor.getId(), start, end)
                 .orElseThrow(() -> new NoFreeSlotsException("Нет свободных слотов в это время"));
 
-        // 3. Связываем приём со слотом
+        // 6. Формирование сущности приёма
+        Appointments appointment = new Appointments();
+        appointment.setDoctor(doctor);
+        appointment.setPatient(patient);
+        appointment.setOffice(office);
+        appointment.setInsuranceId(dto.getInsuranceId());
+        appointment.setDate(start);
+        appointment.setWorkHoursFrom(start);
+        appointment.setWorkHoursFor(end);
         appointment.setSlot(slot);
+
         slot.setBooked(true);
         slotRepository.save(slot);
 
@@ -178,6 +186,7 @@ public class AppointmentsService {
 
         return saved;
     }
+
 
     /**
      * Отправить событие в Kafka, сериализовав payload как JSON.

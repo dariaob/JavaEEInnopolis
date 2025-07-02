@@ -4,14 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.dariaob.dto.appointments.AppointmentRequestDto;
 import org.dariaob.exceptions.NoFreeSlotsException;
 import org.dariaob.kafka.KafkaProducerService;
 import org.dariaob.models.*;
 import org.dariaob.repositories.AppointmentsRepository;
 import org.dariaob.repositories.DoctorScheduleSlotRepository;
-import org.dariaob.services.AppointmentsService;
-import org.dariaob.services.DoctorScheduleService;
-import org.dariaob.services.DoctorScheduleSlotGeneratorService;
+import org.dariaob.services.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +41,15 @@ class AppointmentsServiceTest {
     @Mock
     private DoctorScheduleSlotRepository slotRepository;
 
+    @Mock
+    private DoctorsService doctorsService;
+
+    @Mock
+    private PatientsService patientsService;
+
+    @Mock
+    private OfficesService officesService;
+
     @InjectMocks
     private AppointmentsService service;
     @Mock
@@ -61,6 +69,8 @@ class AppointmentsServiceTest {
     private Offices testOffice;
     private DoctorSchedule testSchedule;
     private DoctorScheduleSlot testSlot;
+    private AppointmentRequestDto testDto;
+
 
     @BeforeEach
     void setup() throws JsonProcessingException {
@@ -75,6 +85,13 @@ class AppointmentsServiceTest {
 
         testSchedule = createTestSchedule(LocalTime.of(9, 0), LocalTime.of(17, 0));
         testSlot = createTestSlot(1L, testSchedule, false);
+
+        testDto = new AppointmentRequestDto();
+        testDto.setDoctorId(testDoctor.getId());
+        testDto.setPatientId(testPatient.getId());
+        testDto.setOfficeId(testOffice.getId());
+        testDto.setDate(LocalDateTime.of(2025, 7, 1, 10, 0));
+        testDto.setInsuranceId(9999L);
 
         testAppointment = createTestAppointment(
                 1L,
@@ -94,33 +111,41 @@ class AppointmentsServiceTest {
     @Test
     @DisplayName("Appointments - Service - Создание приёма - успешный сценарий")
     void appointmentsCreateSuccessTest() {
-        when(repository.existsOverlappingAppointment(anyLong(), any(), any())).thenReturn(false);
-        when(doctorScheduleService.getByDoctorAndDay(anyLong(), anyShort())).thenReturn(List.of(testSchedule));
-        when(slotRepository.existsByDoctorIdAndDate(anyLong(), any())).thenReturn(false); // Слотов нет!
-        when(slotRepository.findFirstByDoctorIdAndTime(anyLong(), any(), any()))
+        when(doctorsService.getActiveById(testDoctor.getId())).thenReturn(testDoctor);
+        when(patientsService.getActiveById(testPatient.getId())).thenReturn(testPatient);
+        when(officesService.getActiveOfficeById(testOffice.getId())).thenReturn(testOffice);
+        when(repository.existsOverlappingAppointment(eq(testDoctor.getId()), any(), any())).thenReturn(false);
+        when(doctorScheduleService.getByDoctorAndDay(eq(testDoctor.getId()), anyShort())).thenReturn(List.of(testSchedule));
+        when(slotRepository.existsByDoctorIdAndDate(eq(testDoctor.getId()), any())).thenReturn(false);
+        when(slotRepository.findFirstByDoctorIdAndTime(eq(testDoctor.getId()), any(), any()))
                 .thenReturn(Optional.of(testSlot));
         when(repository.save(any())).thenReturn(testAppointment);
+        doNothing().when(slotGenerator).generateSlotsForDate(eq(testDoctor.getId()), any());
 
-        doNothing().when(slotGenerator).generateSlotsForDate(anyLong(), any());
-
-        Appointments created = service.createAppointment(testAppointment);
+        Appointments created = service.createAppointment(testDto);
 
         assertThat(created).isNotNull();
-        verify(slotGenerator).generateSlotsForDate(anyLong(), any());
-}
+        assertThat(created.getDoctor().getId()).isEqualTo(testDoctor.getId());
+        assertThat(created.getPatient().getId()).isEqualTo(testPatient.getId());
+        verify(slotGenerator).generateSlotsForDate(eq(testDoctor.getId()), any());
+    }
+
 
     @Test
     @DisplayName("Appointments - Service - Создание приёма - нет свободных слотов")
     void appointmentsCreateNoFreeSlotsTest() {
-        when(repository.existsOverlappingAppointment(anyLong(), any(), any())).thenReturn(false);
-        when(doctorScheduleService.getByDoctorAndDay(anyLong(), anyShort())).thenReturn(List.of(testSchedule));
-        when(slotRepository.existsByDoctorIdAndDate(anyLong(), any())).thenReturn(true);
-        when(slotRepository.findFirstByDoctorIdAndTime(anyLong(), any(), any()))
+        when(doctorsService.getActiveById(testDoctor.getId())).thenReturn(testDoctor);
+        when(patientsService.getActiveById(testPatient.getId())).thenReturn(testPatient);
+        when(officesService.getActiveOfficeById(testOffice.getId())).thenReturn(testOffice);
+        when(repository.existsOverlappingAppointment(eq(testDoctor.getId()), any(), any())).thenReturn(false);
+        when(doctorScheduleService.getByDoctorAndDay(eq(testDoctor.getId()), anyShort())).thenReturn(List.of(testSchedule));
+        when(slotRepository.existsByDoctorIdAndDate(eq(testDoctor.getId()), any())).thenReturn(true);
+        when(slotRepository.findFirstByDoctorIdAndTime(eq(testDoctor.getId()), any(), any()))
                 .thenReturn(Optional.empty());
 
-        assertThrows(NoFreeSlotsException.class,
-                () -> service.createAppointment(testAppointment));
+        assertThrows(NoFreeSlotsException.class, () -> service.createAppointment(testDto));
     }
+
 
 
     @Test
